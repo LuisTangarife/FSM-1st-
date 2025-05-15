@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FSM Interactiva - Transacción Electrónica</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    .fsm-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      width: 100%;
+    }
+    .state {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      border: 3px solid #ccc;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: 0.3s ease;
+    }
+    .state.active {
+      border-color: #3498db;
+      background: #eaf6ff;
+    }
+    .state.error {
+      border-color: #e74c3c;
+      background: #fdecea;
+    }
+    .controls {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    button {
+      padding: 10px 16px;
+      font-size: 15px;
+      border: none;
+      border-radius: 6px;
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    .log {
+      margin-top: 30px;
+      max-width: 1000px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      height: 200px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+    .log p {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔄 Máquina de Estados - Transacción Electrónica</h1>
+  <div class="fsm-container" id="states"></div>
+  <div class="controls">
+    <button onclick="transitar('iniciar')">Iniciar sesión</button>
+    <button onclick="transitar('validar')">Validar identidad</button>
+    <button onclick="transitar('pagar')">Pagar</button>
+    <button onclick="transitar('enviar_tienda')">Enviar a tienda</button>
+    <button onclick="transitar('verificar')">Verificar fondos</button>
+    <button onclick="transitar('cancelar')">Cancelar</button>
+    <button onclick="transitar('autorizar')">Autorizar</button>
+    <button onclick="transitar('entregar')">Entregar producto</button>
+    <button onclick="transitar('liberar')">Liberar fondos</button>
+    <button onclick="transitar('transferir')">Transferir</button>
+    <button onclick="transitar('confirmar')">Confirmar</button>
+  </div>
+  <div class="log" id="log"></div>
+
+  <script>
+    let estado = 'S0';
+    const log = document.getElementById('log');
+
+    const estados = ['S0','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','S11','ERROR'];
+    const nombres = {
+      S0: 'Inicio',
+      S1: 'Sesión iniciada',
+      S2: 'Identidad validada',
+      S3: 'Pago solicitado',
+      S4: 'Solicitud en tienda',
+      S5: 'Verificación en banco',
+      S6: 'Cancelado',
+      S7: 'Autorizado',
+      S8: 'Producto entregado',
+      S9: 'Fondos solicitados',
+      S10: 'Transferencia enviada',
+      S11: 'Transacción finalizada',
+      ERROR: 'Error o fraude detectado'
+    };
+
+    const transiciones = {
+      S0: { iniciar: 'S1' },
+      S1: { validar: 'S2' },
+      S2: { pagar: 'S3' },
+      S3: { enviar_tienda: 'S4' },
+      S4: { verificar: 'S5' },
+      S5: { cancelar: 'S6', autorizar: 'S7' },
+      S7: { entregar: 'S8' },
+      S8: { liberar: 'S9' },
+      S9: { transferir: 'S10' },
+      S10: { confirmar: 'S11' }
+    };
+
+    function renderEstados() {
+      const contenedor = document.getElementById('states');
+      contenedor.innerHTML = '';
+      estados.forEach(e => {
+        const div = document.createElement('div');
+        div.className = 'state';
+        if (e === estado) div.classList.add('active');
+        if (estado === 'ERROR' && e === 'ERROR') div.classList.add('error');
+        div.innerHTML = `<strong>${e}</strong><br>${nombres[e]}`;
+        contenedor.appendChild(div);
+      });
+    }
+
+    function logEvento(mensaje, tipo = 'info') {
+      const p = document.createElement('p');
+      p.innerHTML = tipo === 'error' ? `❌ <strong>${mensaje}</strong>` : `✔️ ${mensaje}`;
+      log.appendChild(p);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function transitar(accion) {
+      if (transiciones[estado] && transiciones[estado][accion]) {
+        const nuevo = transiciones[estado][accion];
+        logEvento(`De ${estado} ➜ ${nuevo} : ${accion}`);
+        estado = nuevo;
+      } else {
+        estado = 'ERROR';
+        logEvento(`Transición inválida con '${accion}' desde ${estado}`, 'error');
+      }
+      renderEstados();
+    }
+
+    // Inicializar
+    renderEstados();
+  </script>
+</body>
+</html>
